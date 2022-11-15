@@ -1,0 +1,25 @@
+{
+  "name": "logwebsocket",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "updown": "nodemon ./services/uploadAndDownload/index.js",
+    "websocket": "nodemon ./services/logWebsocket/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^10.1.0",
+    "koa": "^2.13.4",
+    "koa-body": "^6.0.1",
+    "koa-router": "^12.0.0",
+    "koa-send": "^5.0.1",
+    "koa2-cors": "^2.0.6",
+    "ws": "^8.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>websocket Test</title>
+</head>
+
+<body>
+  <input type="text"></input>
+  <button>发送请求</button>
+  <div></div>
+  <script>
+    const input = document.querySelector("input")
+    const button = document.querySelector("button")
+    const div = document.querySelector("div")
+    const websocket = new WebSocket("ws://localhost:4000")
+    websocket.addEventListener("open", () => {
+      div.innerHTML = "连接成功"
+    })
+    button.addEventListener("click", () => {
+      let value = input.value
+      websocket.send(value)
+
+    })
+
+    websocket.addEventListener("message", (res) => {
+      let divChild = document.createElement("div")
+      divChild.innerHTML = (res.data).slice(1, 10)
+      div.appendChild(divChild)
+    })
+
+  </script>
+
+</body>
+
+</html>

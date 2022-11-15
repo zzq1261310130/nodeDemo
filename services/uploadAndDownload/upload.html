@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script>
+    const { log: print, dir } = console
+    const uploadURL = "http://127.0.0.1:5000/upload"
+
+    let uploadFileBuffer = null
+    let fileName = ''
+    function readFile (input) {
+      let file = input.files[0]
+      fileName = file.name
+      uploadFileBuffer = file
+    }
+    function upload () {
+      if (!uploadFileBuffer) {
+        alert("error read file")
+        return
+      }
+      let index = 1
+      const [fname, fext] = [fileName.slice(0, fileName.lastIndexOf('.')), fileName.slice(fileName.lastIndexOf('.') + 1)]
+      const byteLength = uploadFileBuffer.size
+      const step = 1024 * 1024 * 2
+      const uploadChunk = (startIndex) => {
+        if (startIndex > byteLength) {
+          fetch(uploadURL, {
+            method: "POST",
+            body: "upload completed"
+          }).then(response => {
+            return response.json()
+          }).then(res => {
+            uploadProgress.innerHTML = '100%'
+          })
+          return
+        }
+        const blob = uploadFileBuffer.slice(startIndex, startIndex + step)
+        const blobName = `${fname}.${index++}.${fext}`
+        const blobFile = new File([blob], blobName)
+        const formData = new FormData()
+        formData.append('file', blobFile)
+        fetch(uploadURL, {
+          method: "POST",
+          body: formData
+        }).then(response => {
+          return response.json()
+        }).then(res => {
+          uploadProgress.innerHTML = ((startIndex * 100 / byteLength)).toFixed(2) + '%'
+          startIndex += step
+          uploadChunk(startIndex, step)
+        }).catch(error => {
+          // TODO 失败重传当前chunk，断点续传
+          print(error)
+        })
+      }
+      uploadChunk(0)
+    }
+  </script>
+</head>
+
+<body>
+  <input type="file" onchange="readFile(this)">
+  <br />
+  <br />
+  <input type="button" onclick="upload()" value="上传">
+  <span id="uploadProgress"></span>
+
+</body>
+
+</html>

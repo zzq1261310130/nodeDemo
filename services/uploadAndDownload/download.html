@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script>
+    const { log: print, dir } = console
+    const downloadBaseURL = "http://127.0.0.1:5000/download"
+
+    let saveName = ''
+    let downPath = ''
+    const downloadFile = () => {
+      downPath = down.value
+      saveName = save.value
+      let downloadURL = downloadBaseURL + `/${downPath}`
+      console.log(downloadURL)
+      fetch(downloadURL, {
+        method: "GET",
+      }).then(response => {
+        const reader = response.body.getReader()
+        const contentLength = +response.headers.get('Content-Length')
+        print(response.headers.get("Content-Disposition"))
+        let receivedLength = 0
+        let chunks = []
+        async function f (resolve) {
+          let t0 = Date.now()
+          let s0 = 0
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) {
+              resolve({ msg: "ok", receivedLength, chunks })
+              let downSpeed = (receivedLength - s0) * 8 / Math.max((Date.now() - t0), 1) / 1000
+              downSpeed = downSpeed > 1 ? `${downSpeed.toFixed(3)}Mbps` : `${downSpeed * 1000..toFixed(1)}kbps`
+              speed.innerHTML = downSpeed
+              break
+            }
+            chunks.push(value)
+            receivedLength += value.length
+            if (Date.now() - t0 > 250) {
+              let downSpeed = (receivedLength - s0) * 8 / (Date.now() - t0) / 1000
+              t0 = Date.now()
+              s0 = receivedLength
+              downSpeed = downSpeed > 1 ? `${downSpeed.toFixed(3)}Mbps` : `${downSpeed * 1000..toFixed(1)}kbps`
+              const downProgress = `${(receivedLength * 100 / contentLength).toFixed(2)}%`
+              progress.innerHTML = downProgress
+              speed.innerHTML = downSpeed
+            }
+          }
+        }
+        return new Promise(resolve => {
+          f(resolve)
+        })
+
+
+      }).then(res => {
+        let chunksAll = new Uint8Array(res.receivedLength)
+        let position = 0
+        for (let chunk of res.chunks) {
+          chunksAll.set(chunk, position)
+          position += chunk.length
+        }
+        let link = document.createElement('a')
+        link.download = saveName
+
+        let blob = new Blob([chunksAll],)
+
+        link.href = URL.createObjectURL(blob)
+
+        link.click()
+        URL.revokeObjectURL(link.href)
+
+        progress.innerHTML = '100%'
+        speed.innerHTML = '0bps'
+
+      })
+
+    }
+  </script>
+</head>
+
+<body>
+  下载文件：<input type="text" value="" id="down">
+  <br />
+  <br />
+  保存名称：<input type="test" value="" id="save">
+  <br />
+  <br />
+  <input type="button" value="下载" onclick="downloadFile()">
+  &nbsp; &nbsp;&nbsp; &nbsp;
+  进度：<span id="progress"></span> &nbsp; &nbsp; &nbsp; &nbsp;速度：<span id="speed"></span>
+
+
+</body>
+
+</html>
